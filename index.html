@@ -192,6 +192,20 @@
             height: calc(100vh - 70px);
         }
 
+        /* حالت خصوصی */
+        .private-mode-indicator {
+            background: var(--color-warning);
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .private-mode-indicator.active {
+            display: block;
+        }
+
         /* سایدبار چپ - لیست کاربران */
         .sidebar-left {
             width: 250px;
@@ -544,12 +558,7 @@
             <!-- محتوای اصلی -->
             <div class="main-content">
                 <div class="video-container" id="videoContainer">
-                    <video id="localVideo" autoplay muted playsinline></video>
-                    <div class="video-placeholder" id="videoPlaceholder">
-                        <span>📹</span>
-                        <div>دوربین خاموش است</div>
-                        <div style="font-size: 14px; margin-top: 10px;">برای روشن کردن دوربین، دکمه مربوطه را فشار دهید</div>
-                    </div>
+                    <!-- ویدیوها به صورت داینامیک اضافه می‌شوند -->
                 </div>
 
                 <!-- وایت برد -->
@@ -584,6 +593,9 @@
                     <button class="control-btn" id="privateBtn" onclick="startPrivateCall()">
                         🔒 ارتباط خصوصی
                     </button>
+                    <button class="control-btn danger hidden" id="returnPublicBtn" onclick="returnToPublic()">
+                        🔓 بازگشت به حالت عمومی
+                    </button>
                 </div>
 
                 <div class="control-section">
@@ -609,6 +621,11 @@
 
     <!-- صدای ورود -->
     <audio id="joinSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUQ4OVKvi7q1aGAg+ltryxnMnBSuAzPLaizsIGGS86+ihUhENTKXh8LhjHAU2jtXzzoExBR1txO/mnVYPDVGm4+6xYxwFN47V887BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXz" type="audio/wav">
+    </audio>
+
+    <!-- صدای درخواست خصوصی -->
+    <audio id="privateCallSound" preload="auto">
         <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUQ4OVKvi7q1aGAg+ltryxnMnBSuAzPLaizsIGGS86+ihUhENTKXh8LhjHAU2jtXzzoExBR1txO/mnVYPDVGm4+6xYxwFN47V887BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXz" type="audio/wav">
     </audio>
 
@@ -671,6 +688,9 @@
         let selectedUser = null;
         let isDrawing = false;
         let whiteboardMode = 'draw';
+        let isPrivateMode = false;
+        let onlineUsers = [];
+        let remoteStreams = {};
 
         // توابع نمایش صفحات
         function showLogin() {
@@ -738,7 +758,23 @@
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('appContainer').style.display = 'block';
             document.getElementById('currentUserName').textContent = `${user.firstName} ${user.lastName}`;
+            
+            // افزودن کاربر به لیست آنلاین
+            onlineUsers.push({
+                id: user.id,
+                username: user.username,
+                fullName: `${user.firstName} ${user.lastName}`,
+                cameraOn: false,
+                audioOn: false
+            });
+            
             loadOnlineUsers();
+            
+            // روشن کردن خودکار دوربین و میکروفون
+            setTimeout(() => {
+                toggleCamera();
+                toggleAudio();
+            }, 500);
         }
 
         // خروج
@@ -759,37 +795,40 @@
             sound.play().catch(e => console.log('صدا پخش نشد:', e));
         }
 
-        // بارگذاری لیست کاربران آنلاین (دمو)
+        // بارگذاری لیست کاربران آنلاین (واقعی)
         function loadOnlineUsers() {
             const userList = document.getElementById('userList');
-            const demoUsers = [
-                'علی احمدی',
-                'سارا محمدی',
-                'حسین کریمی',
-                'فاطمه رضایی',
-                'محمد حسینی'
-            ];
+            const currentUserId = db.currentUser?.id;
+            
+            // فقط کاربران دیگر را نمایش بده (نه خود کاربر)
+            const otherUsers = onlineUsers.filter(u => u.id !== currentUserId);
+            
+            if (otherUsers.length === 0) {
+                userList.innerHTML = '<li style="padding: 20px; text-align: center; color: #999;">هیچ کاربر آنلاین دیگری وجود ندارد</li>';
+                return;
+            }
 
-            userList.innerHTML = demoUsers.map((user, index) => `
-                <li class="user-item" onclick="selectUser(${index}, '${user}')">
+            userList.innerHTML = otherUsers.map((user, index) => `
+                <li class="user-item" onclick="selectUser('${user.id}', '${user.fullName}')">
                     <span class="online-dot"></span>
-                    <span>${user}</span>
+                    <span>${user.fullName}</span>
+                    <div style="font-size: 11px; color: #999; margin-top: 3px;">
+                        ${user.cameraOn ? '📹' : '📹❌'} ${user.audioOn ? '🎤' : '🎤❌'}
+                    </div>
                 </li>
             `).join('');
         }
 
         // انتخاب کاربر
-        function selectUser(index, username) {
+        function selectUser(userId, fullName) {
             const items = document.querySelectorAll('.user-item');
-            items.forEach((item, i) => {
-                if (i === index) {
-                    item.classList.add('selected');
-                    selectedUser = username;
-                } else {
-                    item.classList.remove('selected');
-                }
+            items.forEach(item => {
+                item.classList.remove('selected');
             });
-            showNotification(`کاربر "${username}" انتخاب شد`);
+            
+            event.target.closest('.user-item').classList.add('selected');
+            selectedUser = { id: userId, fullName: fullName };
+            showNotification(`کاربر "${fullName}" انتخاب شد`);
         }
 
         // روشن/خاموش کردن دوربین
@@ -800,15 +839,15 @@
                         video: { facingMode: 'user' },
                         audio: false
                     });
-                    const video = document.getElementById('localVideo');
-                    video.srcObject = localStream;
-                    video.style.display = 'block';
-                    document.getElementById('videoPlaceholder').style.display = 'none';
                     
                     const btn = document.getElementById('cameraBtn');
                     btn.classList.add('active');
                     btn.innerHTML = '📷 خاموش کردن دوربین';
                     cameraOn = true;
+                    
+                    // بروزرسانی وضعیت کاربر
+                    updateUserStatus();
+                    renderVideos();
                     showNotification('دوربین روشن شد');
                 } catch (err) {
                     showNotification('خطا در دسترسی به دوربین: ' + err.message);
@@ -820,16 +859,15 @@
 
         function stopCamera() {
             if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                const video = document.getElementById('localVideo');
-                video.srcObject = null;
-                video.style.display = 'none';
-                document.getElementById('videoPlaceholder').style.display = 'flex';
+                localStream.getVideoTracks().forEach(track => track.stop());
                 
                 const btn = document.getElementById('cameraBtn');
                 btn.classList.remove('active');
                 btn.innerHTML = '📷 روشن کردن دوربین';
                 cameraOn = false;
+                
+                updateUserStatus();
+                renderVideos();
                 showNotification('دوربین خاموش شد');
             }
         }
@@ -838,20 +876,34 @@
         async function toggleAudio() {
             if (!audioOn) {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    if (!localStream) {
+                        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    } else {
+                        const audioTrack = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        audioTrack.getAudioTracks().forEach(track => {
+                            localStream.addTrack(track);
+                        });
+                    }
                     const btn = document.getElementById('audioBtn');
                     btn.classList.add('active');
                     btn.innerHTML = '🎤 خاموش کردن صدا';
                     audioOn = true;
+                    updateUserStatus();
+                    renderVideos();
                     showNotification('میکروفون روشن شد');
                 } catch (err) {
                     showNotification('خطا در دسترسی به میکروفون: ' + err.message);
                 }
             } else {
+                if (localStream) {
+                    localStream.getAudioTracks().forEach(track => track.stop());
+                }
                 const btn = document.getElementById('audioBtn');
                 btn.classList.remove('active');
                 btn.innerHTML = '🎤 روشن کردن صدا';
                 audioOn = false;
+                updateUserStatus();
+                renderVideos();
                 showNotification('میکروفون خاموش شد');
             }
         }
@@ -862,8 +914,141 @@
                 showNotification('لطفاً ابتدا یک کاربر را از لیست انتخاب کنید');
                 return;
             }
-            showNotification(`درخواست ارتباط خصوصی با "${selectedUser}" ارسال شد`);
-            // در نسخه کامل، اینجا اتاق خصوصی ایجاد می‌شود
+            
+            // پخش صدای اعلان برای کاربر مقابل (شبیه‌سازی)
+            playPrivateCallSound();
+            
+            // تایید درخواست (در نسخه واقعی از سرور می‌آید)
+            setTimeout(() => {
+                if (confirm(`${selectedUser.fullName} درخواست ارتباط خصوصی را پذیرفت. آیا وارد اتاق خصوصی شوید؟`)) {
+                    enterPrivateMode();
+                }
+            }, 2000);
+            
+            showNotification(`درخواست ارتباط خصوصی به "${selectedUser.fullName}" ارسال شد...`);
+        }
+
+        // ورود به حالت خصوصی
+        function enterPrivateMode() {
+            isPrivateMode = true;
+            
+            // نمایش اندیکاتور حالت خصوصی
+            const indicator = document.createElement('div');
+            indicator.className = 'private-mode-indicator active';
+            indicator.id = 'privateModeIndicator';
+            indicator.innerHTML = `🔒 حالت خصوصی با ${selectedUser.fullName} - فقط شما دو نفر یکدیگر را می‌بینید`;
+            document.querySelector('.app-body').prepend(indicator);
+            
+            // نمایش دکمه بازگشت
+            document.getElementById('returnPublicBtn').classList.remove('hidden');
+            document.getElementById('privateBtn').classList.add('hidden');
+            
+            // رندر ویدیوهای خصوصی
+            renderVideos();
+            showNotification('وارد اتاق خصوصی شدید');
+        }
+
+        // بازگشت به حالت عمومی
+        function returnToPublic() {
+            isPrivateMode = false;
+            selectedUser = null;
+            
+            // حذف اندیکاتور
+            const indicator = document.getElementById('privateModeIndicator');
+            if (indicator) indicator.remove();
+            
+            // تغییر دکمه‌ها
+            document.getElementById('returnPublicBtn').classList.add('hidden');
+            document.getElementById('privateBtn').classList.remove('hidden');
+            
+            // حذف انتخاب از لیست
+            document.querySelectorAll('.user-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // رندر ویدیوهای عمومی
+            renderVideos();
+            showNotification('به حالت عمومی بازگشتید');
+        }
+
+        // پخش صدای درخواست خصوصی
+        function playPrivateCallSound() {
+            const sound = document.getElementById('privateCallSound');
+            sound.play().catch(e => console.log('صدا پخش نشد:', e));
+        }
+
+        // بروزرسانی وضعیت کاربر
+        function updateUserStatus() {
+            const currentUserId = db.currentUser?.id;
+            const user = onlineUsers.find(u => u.id === currentUserId);
+            if (user) {
+                user.cameraOn = cameraOn;
+                user.audioOn = audioOn;
+                loadOnlineUsers();
+            }
+        }
+
+        // رندر کردن ویدیوها
+        function renderVideos() {
+            const videoContainer = document.getElementById('videoContainer');
+            videoContainer.innerHTML = '';
+            
+            if (isPrivateMode && selectedUser) {
+                // حالت خصوصی: فقط دو نفر
+                renderVideoItem('local', 'شما', localStream, cameraOn, audioOn);
+                renderVideoItem('remote', selectedUser.fullName, null, true, true);
+            } else {
+                // حالت عمومی: همه کاربران
+                const currentUserId = db.currentUser?.id;
+                
+                // ویدیوی خود کاربر
+                renderVideoItem('local', 'شما', localStream, cameraOn, audioOn);
+                
+                // ویدیوهای سایر کاربران
+                onlineUsers.forEach(user => {
+                    if (user.id !== currentUserId) {
+                        renderVideoItem('remote', user.fullName, null, user.cameraOn, user.audioOn);
+                    }
+                });
+            }
+        }
+
+        // رندر یک آیتم ویدیو
+        function renderVideoItem(type, name, stream, cameraOn, audioOn) {
+            const videoContainer = document.getElementById('videoContainer');
+            const videoItem = document.createElement('div');
+            videoItem.className = `video-item ${type}`;
+            
+            if (stream && cameraOn) {
+                const video = document.createElement('video');
+                video.autoplay = true;
+                video.playsInline = true;
+                if (type === 'local') video.muted = true;
+                video.srcObject = stream;
+                videoItem.appendChild(video);
+            } else {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'video-placeholder';
+                placeholder.innerHTML = '<span>📹</span><div>' + name + '</div><div style="font-size: 14px;">دوربین خاموش</div>';
+                videoItem.appendChild(placeholder);
+            }
+            
+            // برچسب نام
+            const label = document.createElement('div');
+            label.className = 'video-label';
+            label.textContent = name;
+            videoItem.appendChild(label);
+            
+            // آیکون‌های وضعیت
+            const status = document.createElement('div');
+            status.className = 'video-status';
+            status.innerHTML = `
+                <span class="status-icon ${!cameraOn ? 'muted' : ''}">📹</span>
+                <span class="status-icon ${!audioOn ? 'muted' : ''}">🎤</span>
+            `;
+            videoItem.appendChild(status);
+            
+            videoContainer.appendChild(videoItem);
         }
 
         // آپلود فایل
