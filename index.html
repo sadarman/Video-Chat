@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم ویدئو کنفرانس</title>
+    <title>سیستم ویدئو کنفرانس - Node.js</title>
     <style>
         :root {
             --color-primary: #2196F3;
@@ -33,7 +33,6 @@
             justify-content: center;
         }
 
-        /* صفحه ورود و ثبت نام */
         .auth-container {
             background: var(--color-surface);
             padding: 40px;
@@ -134,11 +133,6 @@
             cursor: pointer;
         }
 
-        .switch-auth a:hover {
-            text-decoration: underline;
-        }
-
-        /* برنامه اصلی */
         .app-container {
             display: none;
             width: 100vw;
@@ -167,11 +161,6 @@
             gap: 15px;
         }
 
-        .user-name {
-            font-weight: 600;
-            color: var(--color-text);
-        }
-
         .logout-btn {
             padding: 8px 20px;
             background: var(--color-danger);
@@ -180,11 +169,6 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: #d32f2f;
         }
 
         .app-body {
@@ -192,7 +176,6 @@
             height: calc(100vh - 70px);
         }
 
-        /* حالت خصوصی */
         .private-mode-indicator {
             background: var(--color-warning);
             color: white;
@@ -206,7 +189,6 @@
             display: block;
         }
 
-        /* سایدبار چپ - لیست کاربران */
         .sidebar-left {
             width: 250px;
             background: var(--color-surface);
@@ -218,7 +200,6 @@
             padding: 20px;
             border-bottom: 1px solid var(--color-border);
             font-weight: 700;
-            color: var(--color-text);
             background: #f8f9fa;
         }
 
@@ -231,9 +212,6 @@
             border-bottom: 1px solid var(--color-border);
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .user-item:hover {
@@ -251,6 +229,7 @@
             background: var(--color-success);
             border-radius: 50%;
             display: inline-block;
+            margin-left: 8px;
             animation: pulse 2s infinite;
         }
 
@@ -259,48 +238,85 @@
             50% { opacity: 0.5; }
         }
 
-        /* قسمت وسط - نمایش ویدئو */
         .main-content {
             flex: 1;
-            display: flex;
-            flex-direction: column;
             padding: 20px;
             overflow-y: auto;
         }
 
-        .video-container {
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .video-item {
             background: #000;
             border-radius: 12px;
             overflow: hidden;
             position: relative;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            aspect-ratio: 16/9;
         }
 
-        #localVideo {
+        .video-item video {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .video-item.local video {
             transform: scaleX(-1);
         }
 
         .video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             color: white;
-            font-size: 24px;
-            text-align: center;
+            font-size: 16px;
         }
 
-        .video-placeholder i {
-            font-size: 80px;
-            margin-bottom: 20px;
-            display: block;
+        .video-placeholder span {
+            font-size: 60px;
+            margin-bottom: 10px;
         }
 
-        /* وایت برد */
+        .video-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .video-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .status-icon {
+            background: rgba(0,0,0,0.7);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .status-icon.muted {
+            opacity: 0.4;
+        }
+
         .whiteboard-container {
-            margin-top: 20px;
             background: var(--color-surface);
             border-radius: 12px;
             padding: 15px;
@@ -314,7 +330,6 @@
         .whiteboard-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             margin-bottom: 15px;
         }
 
@@ -329,7 +344,6 @@
             background: white;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
         .tool-btn.active {
@@ -343,7 +357,6 @@
             border-radius: 8px;
             cursor: crosshair;
             background: white;
-            display: block;
             width: 100%;
         }
 
@@ -354,7 +367,6 @@
             border: 2px solid var(--color-border);
             border-radius: 8px;
             font-size: 14px;
-            font-family: inherit;
             resize: vertical;
             display: none;
         }
@@ -363,7 +375,6 @@
             display: block;
         }
 
-        /* سایدبار راست - کنترل‌ها */
         .sidebar-right {
             width: 280px;
             background: var(--color-surface);
@@ -378,7 +389,6 @@
 
         .control-section h3 {
             font-size: 16px;
-            color: var(--color-text);
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 2px solid var(--color-border);
@@ -393,17 +403,7 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            transition: all 0.3s;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .control-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .control-btn.active {
@@ -415,11 +415,25 @@
         .control-btn.danger {
             background: var(--color-danger);
             color: white;
-            border-color: var(--color-danger);
         }
 
-        .file-input {
-            display: none;
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .file-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
         }
 
         .notification {
@@ -427,12 +441,16 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--color-surface);
+            background: white;
             padding: 16px 24px;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             z-index: 1000;
             display: none;
+        }
+
+        .notification.show {
+            display: block;
             animation: slideDown 0.3s ease;
         }
 
@@ -447,32 +465,22 @@
             }
         }
 
-        .notification.show {
-            display: block;
-        }
-
         .hidden {
             display: none !important;
         }
 
-        /* رسپانسیو */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
         @media (max-width: 768px) {
             .sidebar-left, .sidebar-right {
-                width: 100%;
-                position: fixed;
-                top: 70px;
-                height: calc(100vh - 70px);
-                z-index: 100;
-                transform: translateX(100%);
-                transition: transform 0.3s;
+                display: none;
             }
-
-            .sidebar-left.show, .sidebar-right.show {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                width: 100%;
+            .videos-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -482,16 +490,16 @@
     <div class="auth-container" id="loginPage">
         <div class="auth-header">
             <h1>🎥 ورود به سیستم</h1>
-            <p>لطفاً اطلاعات خود را وارد کنید</p>
+            <p>Node.js + WebRTC + SQLite</p>
         </div>
         <form id="loginForm">
             <div class="form-group">
-                <label>نام کاربری</label>
-                <input type="text" id="loginUsername" required placeholder="نام کاربری خود را وارد کنید">
+                <label>ایمیل</label>
+                <input type="email" id="loginEmail" required placeholder="example@email.com">
             </div>
             <div class="form-group">
                 <label>رمز عبور</label>
-                <input type="password" id="loginPassword" required placeholder="رمز عبور خود را وارد کنید">
+                <input type="password" id="loginPassword" required placeholder="رمز عبور">
             </div>
             <button type="submit" class="btn btn-primary">ورود</button>
             <button type="button" class="btn btn-secondary" onclick="showRegister()">ثبت نام</button>
@@ -505,20 +513,12 @@
     <div class="auth-container hidden" id="registerPage">
         <div class="auth-header">
             <h1>📝 ثبت نام</h1>
-            <p>برای استفاده از سیستم ثبت نام کنید</p>
+            <p>ایجاد حساب جدید</p>
         </div>
         <form id="registerForm">
             <div class="form-group">
-                <label>نام</label>
-                <input type="text" id="regFirstName" required placeholder="نام خود را وارد کنید">
-            </div>
-            <div class="form-group">
-                <label>نام خانوادگی</label>
-                <input type="text" id="regLastName" required placeholder="نام خانوادگی خود را وارد کنید">
-            </div>
-            <div class="form-group">
-                <label>نام کاربری</label>
-                <input type="text" id="regUsername" required placeholder="نام کاربری دلخواه">
+                <label>نام و نام خانوادگی</label>
+                <input type="text" id="regFullName" required placeholder="نام کامل">
             </div>
             <div class="form-group">
                 <label>ایمیل</label>
@@ -526,646 +526,99 @@
             </div>
             <div class="form-group">
                 <label>رمز عبور</label>
-                <input type="password" id="regPassword" required placeholder="رمز عبور قوی انتخاب کنید">
+                <input type="password" id="regPassword" required placeholder="حداقل 6 کاراکتر">
             </div>
             <button type="submit" class="btn btn-primary">ثبت نام</button>
-            <button type="button" class="btn btn-secondary" onclick="showLogin()">بازگشت به ورود</button>
+            <button type="button" class="btn btn-secondary" onclick="showLogin()">بازگشت</button>
         </form>
-        <div class="switch-auth">
-            حساب کاربری دارید؟ <a onclick="showLogin()">وارد شوید</a>
-        </div>
     </div>
 
     <!-- برنامه اصلی -->
     <div class="app-container" id="appContainer">
         <div class="app-header">
-            <div class="app-title">🎥 سیستم ویدئو کنفرانس</div>
+            <div class="app-title">🎥 ویدئو کنفرانس Node.js</div>
             <div class="user-info">
-                <span class="user-name" id="currentUserName"></span>
+                <span id="currentUserName"></span>
                 <button class="logout-btn" onclick="logout()">خروج</button>
             </div>
         </div>
 
+        <div class="private-mode-indicator" id="privateModeIndicator">
+            🔒 حالت خصوصی فعال
+        </div>
+
         <div class="app-body">
-            <!-- سایدبار چپ -->
             <div class="sidebar-left">
                 <div class="sidebar-header">👥 کاربران آنلاین</div>
                 <ul class="user-list" id="userList">
-                    <!-- کاربران به صورت داینامیک اضافه می‌شوند -->
+                    <li class="loading">در حال بارگذاری...</li>
                 </ul>
             </div>
 
-            <!-- محتوای اصلی -->
             <div class="main-content">
-                <div class="video-container" id="videoContainer">
-                    <!-- ویدیوها به صورت داینامیک اضافه می‌شوند -->
-                </div>
+                <div class="videos-grid" id="videosGrid"></div>
 
-                <!-- وایت برد -->
                 <div class="whiteboard-container" id="whiteboardContainer">
                     <div class="whiteboard-header">
                         <h3>📝 وایت برد</h3>
                         <div class="whiteboard-tools">
                             <button class="tool-btn active" onclick="setWhiteboardMode('draw')">✏️ رسم</button>
                             <button class="tool-btn" onclick="setWhiteboardMode('text')">📝 متن</button>
-                            <button class="tool-btn" onclick="clearWhiteboard()">🗑️ پاک کردن</button>
+                            <button class="tool-btn" onclick="clearWhiteboard()">🗑️ پاک</button>
                         </div>
                     </div>
                     <canvas id="whiteboard" width="800" height="400"></canvas>
-                    <textarea id="whiteboardText" class="whiteboard-text" placeholder="متن خود را اینجا بنویسید..."></textarea>
+                    <textarea id="whiteboardText" class="whiteboard-text" placeholder="متن خود را بنویسید..."></textarea>
                 </div>
             </div>
 
-            <!-- سایدبار راست -->
             <div class="sidebar-right">
                 <div class="control-section">
-                    <h3>🎬 کنترل‌های تصویر و صدا</h3>
-                    <button class="control-btn" id="cameraBtn" onclick="toggleCamera()">
-                        📷 روشن کردن دوربین
-                    </button>
-                    <button class="control-btn" id="audioBtn" onclick="toggleAudio()">
-                        🎤 روشن کردن صدا
-                    </button>
+                    <h3>🎬 کنترل‌ها</h3>
+                    <button class="control-btn" id="cameraBtn" onclick="toggleCamera()">📷 دوربین</button>
+                    <button class="control-btn" id="audioBtn" onclick="toggleAudio()">🎤 میکروفون</button>
                 </div>
 
                 <div class="control-section">
-                    <h3>👤 ارتباطات</h3>
-                    <button class="control-btn" id="privateBtn" onclick="startPrivateCall()">
-                        🔒 ارتباط خصوصی
-                    </button>
-                    <button class="control-btn danger hidden" id="returnPublicBtn" onclick="returnToPublic()">
-                        🔓 بازگشت به حالت عمومی
-                    </button>
+                    <h3>👤 ارتباط</h3>
+                    <button class="control-btn" id="privateBtn" onclick="startPrivateCall()">🔒 خصوصی</button>
+                    <button class="control-btn danger hidden" id="returnBtn" onclick="returnToPublic()">🔓 بازگشت</button>
                 </div>
 
                 <div class="control-section">
-                    <h3>📁 اشتراک گذاری</h3>
-                    <button class="control-btn" onclick="document.getElementById('fileInput').click()">
-                        📤 ارسال فایل
-                    </button>
-                    <input type="file" id="fileInput" class="file-input" onchange="handleFileUpload(event)">
+                    <h3>📁 فایل‌ها</h3>
+                    <button class="control-btn" onclick="document.getElementById('fileInput').click()">📤 آپلود</button>
+                    <input type="file" id="fileInput" style="display:none" onchange="uploadFile(event)">
+                    <div class="file-list" id="fileList"></div>
                 </div>
 
                 <div class="control-section">
-                    <h3>🎨 ابزارها</h3>
-                    <button class="control-btn" id="whiteboardBtn" onclick="toggleWhiteboard()">
-                        📝 وایت برد
-                    </button>
+                    <h3>🎨 ابزار</h3>
+                    <button class="control-btn" id="whiteboardBtn" onclick="toggleWhiteboard()">📝 وایت برد</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- نوتیفیکیشن -->
     <div class="notification" id="notification"></div>
 
-    <!-- صدای ورود -->
-    <audio id="joinSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUQ4OVKvi7q1aGAg+ltryxnMnBSuAzPLaizsIGGS86+ihUhENTKXh8LhjHAU2jtXzzoExBR1txO/mnVYPDVGm4+6xYxwFN47V887BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXz" type="audio/wav">
-    </audio>
-
-    <!-- صدای درخواست خصوصی -->
-    <audio id="privateCallSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUQ4OVKvi7q1aGAg+ltryxnMnBSuAzPLaizsIGGS86+ihUhENTKXh8LhjHAU2jtXzzoExBR1txO/mnVYPDVGm4+6xYxwFN47V887BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXzzoEzBR1txO/mnVYPDVGm4+6xYxwFN47V886BMwUdbcTv5p1WDw1RpuPusWMcBTeO1fPOgTMFHW3E7+adVg8NUabj7rFjHAU3jtXz" type="audio/wav">
-    </audio>
+    <!-- Socket.io Client -->
+    <script src="/socket.io/socket.io.js"></script>
 
     <script>
-        // ذخیره‌سازی داده‌ها (جایگزین SQLite)
-        class Database {
-            constructor() {
-                this.users = this.getUsers();
-                this.currentUser = null;
-            }
-
-            getUsers() {
-                const users = localStorage.getItem('videoconf_users');
-                return users ? JSON.parse(users) : [];
-            }
-
-            saveUsers() {
-                localStorage.setItem('videoconf_users', JSON.stringify(this.users));
-            }
-
-            register(userData) {
-                // بررسی تکراری بودن نام کاربری
-                if (this.users.find(u => u.username === userData.username)) {
-                    return { success: false, message: 'این نام کاربری قبلاً ثبت شده است' };
-                }
-
-                // بررسی تکراری بودن ایمیل
-                if (this.users.find(u => u.email === userData.email)) {
-                    return { success: false, message: 'این ایمیل قبلاً ثبت شده است' };
-                }
-
-                this.users.push({
-                    id: Date.now(),
-                    ...userData,
-                    createdAt: new Date().toISOString()
-                });
-                this.saveUsers();
-                return { success: true, message: 'ثبت نام با موفقیت انجام شد' };
-            }
-
-            login(username, password) {
-                const user = this.users.find(u => u.username === username && u.password === password);
-                if (user) {
-                    this.currentUser = user;
-                    return { success: true, user };
-                }
-                return { success: false, message: 'نام کاربری یا رمز عبور اشتباه است' };
-            }
-
-            logout() {
-                this.currentUser = null;
-            }
-        }
-
-        const db = new Database();
+        // متغیرهای عمومی
+        const API_URL = window.location.origin;
+        let socket = null;
+        let currentUser = null;
         let localStream = null;
         let cameraOn = false;
         let audioOn = false;
-        let whiteboardOpen = false;
         let selectedUser = null;
-        let isDrawing = false;
-        let whiteboardMode = 'draw';
         let isPrivateMode = false;
-        let onlineUsers = [];
-        let remoteStreams = {};
+        let whiteboardOpen = false;
+        let whiteboardMode = 'draw';
+        let isDrawing = false;
+        let peerConnections = new Map();
 
-        // توابع نمایش صفحات
-        function showLogin() {
-            document.getElementById('loginPage').classList.remove('hidden');
-            document.getElementById('registerPage').classList.add('hidden');
-        }
-
-        function showRegister() {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('registerPage').classList.remove('hidden');
-        }
-
-        function showNotification(message, duration = 3000) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.add('show');
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, duration);
-        }
-
-        // ثبت نام
-        document.getElementById('registerForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const userData = {
-                firstName: document.getElementById('regFirstName').value,
-                lastName: document.getElementById('regLastName').value,
-                username: document.getElementById('regUsername').value,
-                email: document.getElementById('regEmail').value,
-                password: document.getElementById('regPassword').value
-            };
-
-            const result = db.register(userData);
-            showNotification(result.message);
-            
-            if (result.success) {
-                setTimeout(() => {
-                    showLogin();
-                    document.getElementById('registerForm').reset();
-                }, 1500);
-            }
-        });
-
-        // ورود
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-
-            const result = db.login(username, password);
-            
-            if (result.success) {
-                showNotification('ورود موفقیت‌آمیز! خوش آمدید');
-                playJoinSound();
-                setTimeout(() => {
-                    enterApp(result.user);
-                }, 1000);
-            } else {
-                showNotification(result.message);
-            }
-        });
-
-        // ورود به برنامه
-        function enterApp(user) {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('appContainer').style.display = 'block';
-            document.getElementById('currentUserName').textContent = `${user.firstName} ${user.lastName}`;
-            
-            // افزودن کاربر به لیست آنلاین
-            onlineUsers.push({
-                id: user.id,
-                username: user.username,
-                fullName: `${user.firstName} ${user.lastName}`,
-                cameraOn: false,
-                audioOn: false
-            });
-            
-            loadOnlineUsers();
-            
-            // روشن کردن خودکار دوربین و میکروفون
-            setTimeout(() => {
-                toggleCamera();
-                toggleAudio();
-            }, 500);
-        }
-
-        // خروج
-        function logout() {
-            if (confirm('آیا مطمئن هستید که می‌خواهید خارج شوید؟')) {
-                stopCamera();
-                db.logout();
-                document.getElementById('appContainer').style.display = 'none';
-                document.getElementById('loginPage').classList.remove('hidden');
-                document.getElementById('loginForm').reset();
-                showNotification('با موفقیت خارج شدید');
-            }
-        }
-
-        // پخش صدای ورود
-        function playJoinSound() {
-            const sound = document.getElementById('joinSound');
-            sound.play().catch(e => console.log('صدا پخش نشد:', e));
-        }
-
-        // بارگذاری لیست کاربران آنلاین (واقعی)
-        function loadOnlineUsers() {
-            const userList = document.getElementById('userList');
-            const currentUserId = db.currentUser?.id;
-            
-            // فقط کاربران دیگر را نمایش بده (نه خود کاربر)
-            const otherUsers = onlineUsers.filter(u => u.id !== currentUserId);
-            
-            if (otherUsers.length === 0) {
-                userList.innerHTML = '<li style="padding: 20px; text-align: center; color: #999;">هیچ کاربر آنلاین دیگری وجود ندارد</li>';
-                return;
-            }
-
-            userList.innerHTML = otherUsers.map((user, index) => `
-                <li class="user-item" onclick="selectUser('${user.id}', '${user.fullName}')">
-                    <span class="online-dot"></span>
-                    <span>${user.fullName}</span>
-                    <div style="font-size: 11px; color: #999; margin-top: 3px;">
-                        ${user.cameraOn ? '📹' : '📹❌'} ${user.audioOn ? '🎤' : '🎤❌'}
-                    </div>
-                </li>
-            `).join('');
-        }
-
-        // انتخاب کاربر
-        function selectUser(userId, fullName) {
-            const items = document.querySelectorAll('.user-item');
-            items.forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            event.target.closest('.user-item').classList.add('selected');
-            selectedUser = { id: userId, fullName: fullName };
-            showNotification(`کاربر "${fullName}" انتخاب شد`);
-        }
-
-        // روشن/خاموش کردن دوربین
-        async function toggleCamera() {
-            if (!cameraOn) {
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: 'user' },
-                        audio: false
-                    });
-                    
-                    const btn = document.getElementById('cameraBtn');
-                    btn.classList.add('active');
-                    btn.innerHTML = '📷 خاموش کردن دوربین';
-                    cameraOn = true;
-                    
-                    // بروزرسانی وضعیت کاربر
-                    updateUserStatus();
-                    renderVideos();
-                    showNotification('دوربین روشن شد');
-                } catch (err) {
-                    showNotification('خطا در دسترسی به دوربین: ' + err.message);
-                }
-            } else {
-                stopCamera();
-            }
-        }
-
-        function stopCamera() {
-            if (localStream) {
-                localStream.getVideoTracks().forEach(track => track.stop());
-                
-                const btn = document.getElementById('cameraBtn');
-                btn.classList.remove('active');
-                btn.innerHTML = '📷 روشن کردن دوربین';
-                cameraOn = false;
-                
-                updateUserStatus();
-                renderVideos();
-                showNotification('دوربین خاموش شد');
-            }
-        }
-
-        // روشن/خاموش کردن صدا
-        async function toggleAudio() {
-            if (!audioOn) {
-                try {
-                    if (!localStream) {
-                        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                    } else {
-                        const audioTrack = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        audioTrack.getAudioTracks().forEach(track => {
-                            localStream.addTrack(track);
-                        });
-                    }
-                    const btn = document.getElementById('audioBtn');
-                    btn.classList.add('active');
-                    btn.innerHTML = '🎤 خاموش کردن صدا';
-                    audioOn = true;
-                    updateUserStatus();
-                    renderVideos();
-                    showNotification('میکروفون روشن شد');
-                } catch (err) {
-                    showNotification('خطا در دسترسی به میکروفون: ' + err.message);
-                }
-            } else {
-                if (localStream) {
-                    localStream.getAudioTracks().forEach(track => track.stop());
-                }
-                const btn = document.getElementById('audioBtn');
-                btn.classList.remove('active');
-                btn.innerHTML = '🎤 روشن کردن صدا';
-                audioOn = false;
-                updateUserStatus();
-                renderVideos();
-                showNotification('میکروفون خاموش شد');
-            }
-        }
-
-        // ارتباط خصوصی
-        function startPrivateCall() {
-            if (!selectedUser) {
-                showNotification('لطفاً ابتدا یک کاربر را از لیست انتخاب کنید');
-                return;
-            }
-            
-            // پخش صدای اعلان برای کاربر مقابل (شبیه‌سازی)
-            playPrivateCallSound();
-            
-            // تایید درخواست (در نسخه واقعی از سرور می‌آید)
-            setTimeout(() => {
-                if (confirm(`${selectedUser.fullName} درخواست ارتباط خصوصی را پذیرفت. آیا وارد اتاق خصوصی شوید؟`)) {
-                    enterPrivateMode();
-                }
-            }, 2000);
-            
-            showNotification(`درخواست ارتباط خصوصی به "${selectedUser.fullName}" ارسال شد...`);
-        }
-
-        // ورود به حالت خصوصی
-        function enterPrivateMode() {
-            isPrivateMode = true;
-            
-            // نمایش اندیکاتور حالت خصوصی
-            const indicator = document.createElement('div');
-            indicator.className = 'private-mode-indicator active';
-            indicator.id = 'privateModeIndicator';
-            indicator.innerHTML = `🔒 حالت خصوصی با ${selectedUser.fullName} - فقط شما دو نفر یکدیگر را می‌بینید`;
-            document.querySelector('.app-body').prepend(indicator);
-            
-            // نمایش دکمه بازگشت
-            document.getElementById('returnPublicBtn').classList.remove('hidden');
-            document.getElementById('privateBtn').classList.add('hidden');
-            
-            // رندر ویدیوهای خصوصی
-            renderVideos();
-            showNotification('وارد اتاق خصوصی شدید');
-        }
-
-        // بازگشت به حالت عمومی
-        function returnToPublic() {
-            isPrivateMode = false;
-            selectedUser = null;
-            
-            // حذف اندیکاتور
-            const indicator = document.getElementById('privateModeIndicator');
-            if (indicator) indicator.remove();
-            
-            // تغییر دکمه‌ها
-            document.getElementById('returnPublicBtn').classList.add('hidden');
-            document.getElementById('privateBtn').classList.remove('hidden');
-            
-            // حذف انتخاب از لیست
-            document.querySelectorAll('.user-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // رندر ویدیوهای عمومی
-            renderVideos();
-            showNotification('به حالت عمومی بازگشتید');
-        }
-
-        // پخش صدای درخواست خصوصی
-        function playPrivateCallSound() {
-            const sound = document.getElementById('privateCallSound');
-            sound.play().catch(e => console.log('صدا پخش نشد:', e));
-        }
-
-        // بروزرسانی وضعیت کاربر
-        function updateUserStatus() {
-            const currentUserId = db.currentUser?.id;
-            const user = onlineUsers.find(u => u.id === currentUserId);
-            if (user) {
-                user.cameraOn = cameraOn;
-                user.audioOn = audioOn;
-                loadOnlineUsers();
-            }
-        }
-
-        // رندر کردن ویدیوها
-        function renderVideos() {
-            const videoContainer = document.getElementById('videoContainer');
-            videoContainer.innerHTML = '';
-            
-            if (isPrivateMode && selectedUser) {
-                // حالت خصوصی: فقط دو نفر
-                renderVideoItem('local', 'شما', localStream, cameraOn, audioOn);
-                renderVideoItem('remote', selectedUser.fullName, null, true, true);
-            } else {
-                // حالت عمومی: همه کاربران
-                const currentUserId = db.currentUser?.id;
-                
-                // ویدیوی خود کاربر
-                renderVideoItem('local', 'شما', localStream, cameraOn, audioOn);
-                
-                // ویدیوهای سایر کاربران
-                onlineUsers.forEach(user => {
-                    if (user.id !== currentUserId) {
-                        renderVideoItem('remote', user.fullName, null, user.cameraOn, user.audioOn);
-                    }
-                });
-            }
-        }
-
-        // رندر یک آیتم ویدیو
-        function renderVideoItem(type, name, stream, cameraOn, audioOn) {
-            const videoContainer = document.getElementById('videoContainer');
-            const videoItem = document.createElement('div');
-            videoItem.className = `video-item ${type}`;
-            
-            if (stream && cameraOn) {
-                const video = document.createElement('video');
-                video.autoplay = true;
-                video.playsInline = true;
-                if (type === 'local') video.muted = true;
-                video.srcObject = stream;
-                videoItem.appendChild(video);
-            } else {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'video-placeholder';
-                placeholder.innerHTML = '<span>📹</span><div>' + name + '</div><div style="font-size: 14px;">دوربین خاموش</div>';
-                videoItem.appendChild(placeholder);
-            }
-            
-            // برچسب نام
-            const label = document.createElement('div');
-            label.className = 'video-label';
-            label.textContent = name;
-            videoItem.appendChild(label);
-            
-            // آیکون‌های وضعیت
-            const status = document.createElement('div');
-            status.className = 'video-status';
-            status.innerHTML = `
-                <span class="status-icon ${!cameraOn ? 'muted' : ''}">📹</span>
-                <span class="status-icon ${!audioOn ? 'muted' : ''}">🎤</span>
-            `;
-            videoItem.appendChild(status);
-            
-            videoContainer.appendChild(videoItem);
-        }
-
-        // آپلود فایل
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                showNotification(`فایل "${file.name}" (${(file.size / 1024).toFixed(2)} KB) آماده ارسال است`);
-                // در نسخه کامل، فایل به سرور آپلود می‌شود
-            }
-        }
-
-        // وایت برد
-        function toggleWhiteboard() {
-            whiteboardOpen = !whiteboardOpen;
-            const container = document.getElementById('whiteboardContainer');
-            const btn = document.getElementById('whiteboardBtn');
-            
-            if (whiteboardOpen) {
-                container.classList.add('active');
-                btn.classList.add('active');
-                btn.innerHTML = '📝 بستن وایت برد';
-                initWhiteboard();
-            } else {
-                container.classList.remove('active');
-                btn.classList.remove('active');
-                btn.innerHTML = '📝 وایت برد';
-            }
-        }
-
-        function setWhiteboardMode(mode) {
-            whiteboardMode = mode;
-            const buttons = document.querySelectorAll('.whiteboard-tools .tool-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            if (mode === 'text') {
-                document.getElementById('whiteboard').style.display = 'none';
-                document.getElementById('whiteboardText').classList.add('active');
-            } else {
-                document.getElementById('whiteboard').style.display = 'block';
-                document.getElementById('whiteboardText').classList.remove('active');
-            }
-        }
-
-        function initWhiteboard() {
-            const canvas = document.getElementById('whiteboard');
-            const ctx = canvas.getContext('2d');
-            
-            ctx.strokeStyle = '#2196F3';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-
-            // پشتیبانی لمسی
-            canvas.addEventListener('touchstart', handleTouch);
-            canvas.addEventListener('touchmove', handleTouch);
-            canvas.addEventListener('touchend', stopDrawing);
-        }
-
-        function startDrawing(e) {
-            if (whiteboardMode !== 'draw') return;
-            isDrawing = true;
-            const canvas = document.getElementById('whiteboard');
-            const ctx = canvas.getContext('2d');
-            const rect = canvas.getBoundingClientRect();
-            ctx.beginPath();
-            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        }
-
-        function draw(e) {
-            if (!isDrawing || whiteboardMode !== 'draw') return;
-            const canvas = document.getElementById('whiteboard');
-            const ctx = canvas.getContext('2d');
-            const rect = canvas.getBoundingClientRect();
-            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-            ctx.stroke();
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-        }
-
-        function handleTouch(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            e.target.dispatchEvent(mouseEvent);
-        }
-
-        function clearWhiteboard() {
-            const canvas = document.getElementById('whiteboard');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            document.getElementById('whiteboardText').value = '';
-            showNotification('وایت برد پاک شد');
-        }
-
-        // ایجاد چند کاربر نمونه
-        window.addEventListener('load', () => {
-            if (db.users.length === 0) {
-                db.register({
-                    firstName: 'کاربر',
-                    lastName: 'آزمایشی',
-                    username: 'demo',
-                    email: 'demo@test.com',
-                    password: '123456'
-                });
-                console.log('کاربر نمونه ایجاد شد - username: demo, password: 123456');
-            }
-        });
-    </script>
-</body>
-</html>
+        // صدای اعلان
+        const notificationSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77eeeSwwOUKvm');
