@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سیستم ویدئو کنفرانس - Node.js</title>
+    <style>
+        :root {
+            --color-primary: #2196F3;
+            --color-primary-dark: #1976D2;
+            --color-success: #4CAF50;
+            --color-danger: #f44336;
+            --color-warning: #FF9800;
+            --color-bg: #f5f5f5;
+            --color-surface: #ffffff;
+            --color-text: #333333;
+            --color-border: #ddd;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: var(--color-surface);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: var(--color-primary);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--color-text);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .switch-auth {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .switch-auth a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .app-container {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            background: var(--color-bg);
+        }
+
+        .app-header {
+            background: var(--color-surface);
+            padding: 15px 30px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-size: 20px;
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .app-body {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+
+        .private-mode-indicator {
+            background: var(--color-warning);
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .private-mode-indicator.active {
+            display: block;
+        }
+
+        .sidebar-left {
+            width: 250px;
+            background: var(--color-surface);
+            border-left: 1px solid var(--color-border);
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--color-border);
+            font-weight: 700;
+            background: #f8f9fa;
+        }
+
+        .user-list {
+            list-style: none;
+        }
+
+        .user-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-item:hover {
+            background: #f8f9fa;
+        }
+
+        .user-item.selected {
+            background: #e3f2fd;
+            border-right: 4px solid var(--color-primary);
+        }
+
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--color-success);
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .video-item {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 16/9;
+        }
+
+        .video-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-item.local video {
+            transform: scaleX(-1);
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .video-placeholder span {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+
+        .video-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .video-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .status-icon {
+            background: rgba(0,0,0,0.7);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .status-icon.muted {
+            opacity: 0.4;
+        }
+
+        .whiteboard-container {
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 15px;
+            display: none;
+        }
+
+        .whiteboard-container.active {
+            display: block;
+        }
+
+        .whiteboard-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .whiteboard-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tool-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--color-border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .tool-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        #whiteboard {
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            cursor: crosshair;
+            background: white;
+            width: 100%;
+        }
+
+        .whiteboard-text {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            display: none;
+        }
+
+        .whiteboard-text.active {
+            display: block;
+        }
+
+        .sidebar-right {
+            width: 280px;
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .control-btn {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--color-border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .control-btn.active {
+            background: var(--color-success);
+            color: white;
+            border-color: var(--color-success);
+        }
+
+        .control-btn.danger {
+            background: var(--color-danger);
+            color: white;
+        }
+
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .file-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .notification.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-left, .sidebar-right {
+                display: none;
+            }
+            .videos-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- صفحه ورود -->
+    <div class="auth-container" id="loginPage">
+        <div class="auth-header">
+            <h1>🎥 ورود به سیستم</h1>
+            <p>Node.js + WebRTC + SQLite</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>ایمیل</label>
+                <input type="email" id="loginEmail" required placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label>رمز عبور</label>
+                <input type="password" id="loginPassword" required placeholder="رمز عبور">
+            </div>
+            <button type="submit" class="btn btn-primary">ورود</button>
+            <button type="button" class="btn btn-secondary" onclick="showRegister()">ثبت نام</button>
+        </form>
+        <div class="switch-auth">
+            حساب کاربری ندارید؟ <a onclick="showRegister()">ثبت نام کنید</a>
+        </div>
+    </div>
+
+    <!-- صفحه ثبت نام -->
+    <div class="auth-container hidden" id="registerPage">
+        <div class="auth-header">
+            <h1>📝 ثبت نام</h1>
+            <p>ایجاد حساب جدید</p>
+        </div>
+        <form id="registerForm">
+            <div class="form-group">
+                <label>نام و نام خانوادگی</label>
+                <input type="text" id="regFullName" required placeholder="نام کامل">
+            </div>
+            <div class="form-group">
+                <label>ایمیل</label>
+                <input type="email" id="regEmail" required placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label>رمز عبور</label>
+                <input type="password" id="regPassword" required placeholder="حداقل 6 کاراکتر">
+            </div>
+            <button type="submit" class="btn btn-primary">ثبت نام</button>
+            <button type="button" class="btn btn-secondary" onclick="showLogin()">بازگشت</button>
+        </form>
+    </div>
+
+    <!-- برنامه اصلی -->
+    <div class="app-container" id="appContainer">
+        <div class="app-header">
+            <div class="app-title">🎥 ویدئو کنفرانس Node.js</div>
+            <div class="user-info">
+                <span id="currentUserName"></span>
+                <button class="logout-btn" onclick="logout()">خروج</button>
+            </div>
+        </div>
+
+        <div class="private-mode-indicator" id="privateModeIndicator">
+            🔒 حالت خصوصی فعال
+        </div>
+
+        <div class="app-body">
+            <div class="sidebar-left">
+                <div class="sidebar-header">👥 کاربران آنلاین</div>
+                <ul class="user-list" id="userList">
+                    <li class="loading">در حال بارگذاری...</li>
+                </ul>
+            </div>
+
+            <div class="main-content">
+                <div class="videos-grid" id="videosGrid"></div>
+
+                <div class="whiteboard-container" id="whiteboardContainer">
+                    <div class="whiteboard-header">
+                        <h3>📝 وایت برد</h3>
+                        <div class="whiteboard-tools">
+                            <button class="tool-btn active" onclick="setWhiteboardMode('draw')">✏️ رسم</button>
+                            <button class="tool-btn" onclick="setWhiteboardMode('text')">📝 متن</button>
+                            <button class="tool-btn" onclick="clearWhiteboard()">🗑️ پاک</button>
+                        </div>
+                    </div>
+                    <canvas id="whiteboard" width="800" height="400"></canvas>
+                    <textarea id="whiteboardText" class="whiteboard-text" placeholder="متن خود را بنویسید..."></textarea>
+                </div>
+            </div>
+
+            <div class="sidebar-right">
+                <div class="control-section">
+                    <h3>🎬 کنترل‌ها</h3>
+                    <button class="control-btn" id="cameraBtn" onclick="toggleCamera()">📷 دوربین</button>
+                    <button class="control-btn" id="audioBtn" onclick="toggleAudio()">🎤 میکروفون</button>
+                </div>
+
+                <div class="control-section">
+                    <h3>👤 ارتباط</h3>
+                    <button class="control-btn" id="privateBtn" onclick="startPrivateCall()">🔒 خصوصی</button>
+                    <button class="control-btn danger hidden" id="returnBtn" onclick="returnToPublic()">🔓 بازگشت</button>
+                </div>
+
+                <div class="control-section">
+                    <h3>📁 فایل‌ها</h3>
+                    <button class="control-btn" onclick="document.getElementById('fileInput').click()">📤 آپلود</button>
+                    <input type="file" id="fileInput" style="display:none" onchange="uploadFile(event)">
+                    <div class="file-list" id="fileList"></div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🎨 ابزار</h3>
+                    <button class="control-btn" id="whiteboardBtn" onclick="toggleWhiteboard()">📝 وایت برد</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <!-- Socket.io Client -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        // متغیرهای عمومی
+        const API_URL = window.location.origin;
+        let socket = null;
+        let currentUser = null;
+        let localStream = null;
+        let cameraOn = false;
+        let audioOn = false;
+        let selectedUser = null;
+        let isPrivateMode = false;
+        let whiteboardOpen = false;
+        let whiteboardMode = 'draw';
+        let isDrawing = false;
+        let peerConnections = new Map();
+
+        // صدای اعلان
+        const notificationSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77eeeSwwOUKvm');
